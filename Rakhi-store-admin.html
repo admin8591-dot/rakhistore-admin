@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BhaiBandhan — Admin Panel</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#fdf6f0;font-family:'Segoe UI',Arial,sans-serif;color:#1a0408}
+
+/* ===== LOGIN GATE ===== */
+#gate{position:fixed;inset:0;background:#8B1A1A;display:flex;align-items:center;justify-content:center;z-index:99999;padding:20px}
+.gatebox{background:#fff;border-radius:16px;padding:28px 24px;max-width:340px;width:100%;text-align:center}
+.gatebox h1{color:#8B1A1A;font-size:20px;margin-bottom:4px}
+.gatebox p{font-size:12px;color:#888;margin-bottom:18px}
+.gatebox input{width:100%;padding:12px;border-radius:9px;border:1.5px solid rgba(139,26,26,.2);font-size:15px;text-align:center;letter-spacing:2px;margin-bottom:12px}
+.gatebox button{width:100%;padding:12px;background:#8B1A1A;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:14px;cursor:pointer}
+.gateerr{color:#c00;font-size:12px;margin-top:8px;display:none}
+
+/* ===== LAYOUT ===== */
+#app{display:none;max-width:900px;margin:0 auto;padding-bottom:60px}
+.topbar{background:#8B1A1A;color:#fff;padding:14px 16px;position:sticky;top:0;z-index:100}
+.topbar h1{font-size:17px;font-weight:900}
+.tabs{display:flex;gap:6px;overflow-x:auto;padding:10px 12px;background:#fff;border-bottom:1px solid rgba(0,0,0,.08);position:sticky;top:49px;z-index:99;-webkit-overflow-scrolling:touch}
+.tabs::-webkit-scrollbar{display:none}
+.tab{flex-shrink:0;padding:8px 14px;border-radius:8px;font-size:12.5px;font-weight:700;color:#8B1A1A;background:rgba(139,26,26,.06);cursor:pointer;white-space:nowrap}
+.tab.on{background:#8B1A1A;color:#fff}
+.panel{display:none;padding:16px}
+.panel.on{display:block}
+
+/* ===== CARDS / LISTS ===== */
+.card{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:12px;margin-bottom:10px;display:flex;gap:10px;align-items:center}
+.card img{width:52px;height:52px;object-fit:cover;border-radius:8px;background:#f5ebe0;flex-shrink:0}
+.card .info{flex:1;min-width:0}
+.card .info b{font-size:13px;display:block}
+.card .info span{font-size:11.5px;color:#888}
+.card .acts{display:flex;gap:6px;flex-shrink:0}
+.iconbtn{width:32px;height:32px;border-radius:8px;border:none;font-size:14px;cursor:pointer}
+.iconbtn.edit{background:rgba(139,26,26,.1);color:#8B1A1A}
+.iconbtn.del{background:rgba(239,68,68,.1);color:#ef4444}
+.addbtn{width:100%;padding:12px;background:linear-gradient(135deg,#8B1A1A,#6b1414);color:#fff;border:none;border-radius:10px;font-weight:800;font-size:14px;cursor:pointer;margin-bottom:14px}
+.empty{text-align:center;color:#999;font-size:12.5px;padding:20px}
+
+/* ===== FORM MODAL ===== */
+.fov{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:9990}
+.fov.on{display:block}
+.fm{display:none;position:fixed;bottom:0;left:0;right:0;max-width:900px;margin:0 auto;background:#fffaf5;border-radius:18px 18px 0 0;z-index:9991;max-height:90vh;overflow-y:auto;padding:18px 16px 30px}
+.fm.on{display:block}
+.fm h3{color:#8B1A1A;font-size:16px;margin-bottom:14px}
+.fm label{display:block;font-size:11px;font-weight:700;color:#8B1A1A;margin:10px 0 4px}
+.fm label:first-of-type{margin-top:0}
+.fm input,.fm select,.fm textarea{width:100%;padding:10px 12px;border-radius:9px;border:1.5px solid rgba(139,26,26,.2);font-size:13.5px;background:#fff}
+.fm textarea{resize:vertical;min-height:70px}
+.frow{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.fm .save{width:100%;margin-top:16px;padding:12px;background:linear-gradient(135deg,#8B1A1A,#6b1414);color:#fff;border:none;border-radius:9px;font-weight:800;font-size:14px;cursor:pointer}
+.fm .cancel{width:100%;margin-top:8px;padding:11px;background:#eee;color:#555;border:none;border-radius:9px;font-weight:700;font-size:13px;cursor:pointer}
+.fm .toprow{display:flex;justify-content:space-between;align-items:center}
+.fm .close{width:28px;height:28px;background:rgba(139,26,26,.1);border:none;border-radius:50%;color:#8B1A1A;cursor:pointer}
+.imgpreview{display:flex;gap:8px;flex-wrap:wrap;margin-top:8px}
+.imgpreview img{width:60px;height:60px;object-fit:cover;border-radius:8px;border:1px solid rgba(0,0,0,.1)}
+.uploadstatus{font-size:11px;color:#888;margin-top:4px}
+.togglewrap{display:flex;align-items:center;gap:8px;margin-top:10px}
+.togglewrap input{width:auto}
+
+/* ===== ORDERS ===== */
+.ordercard{background:#fff;border:1px solid rgba(0,0,0,.08);border-radius:12px;padding:12px;margin-bottom:10px}
+.ordercard .top{display:flex;justify-content:space-between;font-size:12px;color:#888;margin-bottom:6px}
+.ordercard .name{font-size:14px;font-weight:800;margin-bottom:2px}
+.ordercard .addr{font-size:12px;color:#666;margin-bottom:8px}
+.ordercard .total{font-size:15px;font-weight:900;color:#8B1A1A}
+.statusdd{margin-top:8px;padding:7px 10px;border-radius:8px;border:1.5px solid rgba(139,26,26,.2);font-size:12px;font-weight:700}
+
+/* ===== SETTINGS TEXT ===== */
+.settingblock{margin-bottom:18px}
+.settingblock label{font-size:12px;font-weight:800;color:#8B1A1A;display:block;margin-bottom:6px}
+.settingblock textarea, .settingblock input{width:100%;padding:10px;border-radius:9px;border:1.5px solid rgba(139,26,26,.2);font-size:13px}
+.settingsave{margin-top:6px;padding:8px 16px;background:#8B1A1A;color:#fff;border:none;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer}
+
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);background:#1a0408;color:#fff;padding:10px 18px;border-radius:20px;font-size:13px;z-index:99999;display:none}
+</style>
+</head>
+<body>
+
+<!-- LOGIN GATE -->
+<div id="gate">
+  <div class="gatebox">
+    <h1>BhaiBandhan Admin</h1>
+    <p>Enter passcode to continue</p>
+    <input type="password" id="passInput" placeholder="••••••" maxlength="20">
+    <button onclick="tryLogin()">Enter</button>
+    <div class="gateerr" id="gateErr">Wrong passcode, try again.</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app">
+  <div class="topbar"><h1>🪢 BhaiBandhan Admin Panel</h1></div>
+  <div class="tabs" id="TABS"></div>
+
+  <div class="panel on" id="panel-products">
+    <button class="addbtn" onclick="openProductForm()">+ Add New Product</button>
+    <div id="productList"></div>
+  </div>
+
+  <div class="panel" id="panel-banners">
+    <button class="addbtn" onclick="openBannerForm()">+ Add New Banner</button>
+    <div id="bannerList"></div>
+  </div>
+
+  <div class="panel" id="panel-coupons">
+    <button class="addbtn" onclick="openCouponForm()">+ Add New Coupon Tier</button>
+    <div id="couponList"></div>
+  </div>
+
+  <div class="panel" id="panel-categories">
+    <button class="addbtn" onclick="openCategoryForm()">+ Add New Category</button>
+    <div id="categoryList"></div>
+  </div>
+
+  <div class="panel" id="panel-settings">
+    <div id="settingsBlocks"></div>
+  </div>
+
+  <div class="panel" id="panel-orders">
+    <button class="addbtn" onclick="loadOrders()" style="background:linear-gradient(135deg,#555,#333)">↻ Refresh Orders</button>
+    <div id="orderList"></div>
+  </div>
+</div>
+
+<!-- GENERIC FORM MODAL -->
+<div class="fov" id="FOV" onclick="closeForm()"></div>
+<div class="fm" id="FM"></div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/* ================================================================
+   CONFIG
+================================================================= */
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyNwG5ZJJVDAAI-Qi0Nsi79F5cZsKBbPWzXouxvsIOxc1b_UAtsvG-8EqUcaOk-2suNjg/exec";
+
+// Simple client-side passcode gate. This is a light deterrent only —
+// anyone who reads this file's source can see the check. For real
+// protection, this passcode should live server-side, but this stops
+// casual/accidental access to your admin link.
+const ADMIN_PASSCODE = "bhaibandhan2026";
+
+let STATE = { products:[], banners:[], coupons:[], categories:[], settings:[] };
+
+/* ================================================================
+   LOGIN GATE
+================================================================= */
+function tryLogin(){
+  const val = document.getElementById('passInput').value;
+  if(val === ADMIN_PASSCODE){
+    document.getElementById('gate').style.display='none';
+    document.getElementById('app').style.display='block';
+    initApp();
+  } else {
+    document.getElementById('gateErr').style.display='block';
+  }
+}
+document.getElementById('passInput').addEventListener('keydown', e=>{ if(e.key==='Enter') tryLogin(); });
+
+/* ================================================================
+   TABS
+================================================================= */
+const TAB_LIST = [
+  {id:'products', label:'Products'},
+  {id:'banners', label:'Banners'},
+  {id:'coupons', label:'Coupons'},
+  {id:'categories', label:'Categories'},
+  {id:'settings', label:'Site Text'},
+  {id:'orders', label:'Orders'}
+];
+function renderTabs(){
+  document.getElementById('TABS').innerHTML = TAB_LIST.map((t,i)=>
+    `<div class="tab${i===0?' on':''}" onclick="switchTab('${t.id}')">${t.label}</div>`).join('');
+}
+function switchTab(id){
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('on'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
+  [...document.getElementById('TABS').children].find(t=>t.textContent===TAB_LIST.find(x=>x.id===id).label).classList.add('on');
+  document.getElementById('panel-'+id).classList.add('on');
+  if(id==='orders') loadOrders();
+}
+
+/* ================================================================
+   TOAST
+================================================================= */
+function toast(msg){
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.display='block';
+  setTimeout(()=>t.style.display='none', 2200);
+}
+
+/* ================================================================
+   API HELPERS
+================================================================= */
+async function apiGet(action){
+  const res = await fetch(SCRIPT_URL + '?action=' + action);
+  return res.json();
+}
+async function apiPost(payload){
+  const res = await fetch(SCRIPT_URL, {
+    method:'POST',
+    headers:{'Content-Type':'text/plain;charset=utf-8'},
+    body: JSON.stringify(payload)
+  });
+  return res.json();
+}
+function fileToBase64(file){
+  return new Promise((resolve,reject)=>{
+    const r = new FileReader();
+    r.onload = ()=> resolve(r.result.split(',')[1]);
+    r.onerror = reject;
+    r.readAsDataURL(file);
+  });
+}
+async function uploadImage(file){
+  const base64 = await fileToBase64(file);
+  const result = await apiPost({ action:'uploadImage', imageBase64: base64, filename: file.name });
+  if(result.success) return result.url;
+  throw new Error(result.error || 'Upload failed');
+}
+
+/* ================================================================
+   LOAD ALL DATA
+================================================================= */
+async function initApp(){
+  renderTabs();
+  await refreshAll();
+}
+async function refreshAll(){
+  const data = await apiGet('getAll');
+  STATE.products = data.products || [];
+  STATE.banners = data.banners || [];
+  STATE.coupons = data.coupons || [];
+  STATE.categories = data.categories || [];
+  STATE.settings = data.settings || [];
+  renderProducts();
+  renderBanners();
+  renderCoupons();
+  renderCategories();
+  renderSettings();
+}
+
+/* ================================================================
+   FORM MODAL HELPERS
+================================================================= */
+function openForm(html){
+  document.getElementById('FM').innerHTML = html;
+  document.getElementById('FM').classList.add('on');
+  document.getElementById('FOV').classList.add('on');
+}
+function closeForm(){
+  document.getElementById('FM').classList.remove('on');
+  document.getElementById('FOV').classList.remove('on');
+}
+
+/* ================================================================
+   PRODUCTS
+================================================================= */
+function renderProducts(){
+  const el = document.getElementById('productList');
+  if(STATE.products.length===0){ el.innerHTML = '<div class="empty">No products yet.</div>'; return; }
+  el.innerHTML = STATE.products.map(p => `
+    <div class="card">
+      <img src="${p.image_main||''}" onerror="this.style.opacity=0">
+      <div class="info">
+        <b>${p.name}</b>
+        <span>${p.category} • ₹${p.discount_price} (was ₹${p.original_price}) • Stock: ${p.stock} • ${p.active==='Y'?'Active':'Hidden'}</span>
+      </div>
+      <div class="acts">
+        <button class="iconbtn edit" onclick='openProductForm(${JSON.stringify(p)})'>✎</button>
+        <button class="iconbtn del" onclick="deleteItem('deleteProduct', ${p.id}, refreshAll)">🗑</button>
+      </div>
+    </div>`).join('');
+}
+
+function openProductForm(p){
+  p = p || {id:'', name:'', description:'', category:'', image_main:'', image_gallery:'', original_price:'', discount_price:'', stock:'', active:'Y'};
+  const catOptions = STATE.categories.map(c=>`<option value="${c.name}" ${c.name===p.category?'selected':''}>${c.name}</option>`).join('');
+  openForm(`
+    <div class="toprow"><h3>${p.id?'Edit':'Add'} Product</h3><button class="close" onclick="closeForm()">✕</button></div>
+    <label>Product Name</label><input id="f_name" value="${p.name}">
+    <label>Description</label><textarea id="f_desc">${p.description}</textarea>
+    <label>Category</label><select id="f_cat">${catOptions}</select>
+    <div class="frow">
+      <div><label>Original Price (₹)</label><input id="f_orig" type="number" value="${p.original_price}"></div>
+      <div><label>Discount Price (₹)</label><input id="f_disc" type="number" value="${p.discount_price}"></div>
+    </div>
+    <label>Stock Quantity</label><input id="f_stock" type="number" value="${p.stock}">
+    <label>Main Image</label>
+    <input type="file" id="f_mainimg" accept="image/*">
+    <div class="imgpreview" id="f_mainimg_preview">${p.image_main?`<img src="${p.image_main}">`:''}</div>
+    <input type="hidden" id="f_mainimg_url" value="${p.image_main}">
+    <label>Gallery Images (extra views — you can select multiple)</label>
+    <input type="file" id="f_galimg" accept="image/*" multiple>
+    <div class="imgpreview" id="f_galimg_preview">${String(p.image_gallery||'').split(',').filter(Boolean).map(u=>`<img src="${u.trim()}">`).join('')}</div>
+    <input type="hidden" id="f_galimg_urls" value="${p.image_gallery||''}">
+    <div class="uploadstatus" id="f_uploadstatus"></div>
+    <div class="togglewrap"><input type="checkbox" id="f_active" ${p.active==='Y'?'checked':''}> <label style="margin:0">Active (visible on store)</label></div>
+    <button class="save" onclick="saveProduct(${p.id||'null'})">Save Product</button>
+    <button class="cancel" onclick="closeForm()">Cancel</button>
+  `);
+
+  document.getElementById('f_mainimg').addEventListener('change', async e=>{
+    const file = e.target.files[0]; if(!file) return;
+    document.getElementById('f_uploadstatus').textContent = 'Uploading...';
+    try{
+      const url = await uploadImage(file);
+      document.getElementById('f_mainimg_url').value = url;
+      document.getElementById('f_mainimg_preview').innerHTML = `<img src="${url}">`;
+      document.getElementById('f_uploadstatus').textContent = 'Uploaded ✓';
+    }catch(err){ document.getElementById('f_uploadstatus').textContent = 'Upload failed: '+err.message; }
+  });
+
+  document.getElementById('f_galimg').addEventListener('change', async e=>{
+    const files = [...e.target.files]; if(files.length===0) return;
+    document.getElementById('f_uploadstatus').textContent = 'Uploading '+files.length+' image(s)...';
+    const existing = document.getElementById('f_galimg_urls').value.split(',').map(s=>s.trim()).filter(Boolean);
+    for(const file of files){
+      try{
+        const url = await uploadImage(file);
+        existing.push(url);
+      }catch(err){ toast('One image failed: '+err.message); }
+    }
+    document.getElementById('f_galimg_urls').value = existing.join(',');
+    document.getElementById('f_galimg_preview').innerHTML = existing.map(u=>`<img src="${u}">`).join('');
+    document.getElementById('f_uploadstatus').textContent = 'Uploaded ✓';
+  });
+}
+
+async function saveProduct(id){
+  const data = {
+    id: id || undefined,
+    name: document.getElementById('f_name').value,
+    description: document.getElementById('f_desc').value,
+    category: document.getElementById('f_cat').value,
+    original_price: Number(document.getElementById('f_orig').value),
+    discount_price: Number(document.getElementById('f_disc').value),
+    stock: Number(document.getElementById('f_stock').value),
+    image_main: document.getElementById('f_mainimg_url').value,
+    image_gallery: document.getElementById('f_galimg_urls').value,
+    active: document.getElementById('f_active').checked ? 'Y' : 'N'
+  };
+  const result = await apiPost({ action:'saveProduct', data });
+  if(result.success){ toast('Product saved ✓'); closeForm(); refreshAll(); }
+  else toast('Error: '+result.error);
+}
+
+/* ================================================================
+   BANNERS
+================================================================= */
+function renderBanners(){
+  const el = document.getElementById('bannerList');
+  if(STATE.banners.length===0){ el.innerHTML = '<div class="empty">No banners yet.</div>'; return; }
+  el.innerHTML = STATE.banners.map(b => `
+    <div class="card">
+      <img src="${b.image_url}" onerror="this.style.opacity=0">
+      <div class="info"><b>${b.heading}</b><span>${b.subtext} • Order ${b.sort_order} • ${b.active==='Y'?'Active':'Hidden'}</span></div>
+      <div class="acts">
+        <button class="iconbtn edit" onclick='openBannerForm(${JSON.stringify(b)})'>✎</button>
+        <button class="iconbtn del" onclick="deleteItem('deleteBanner', ${b.id}, refreshAll)">🗑</button>
+      </div>
+    </div>`).join('');
+}
+function openBannerForm(b){
+  b = b || {id:'', image_url:'', heading:'', subtext:'', sort_order:1, active:'Y'};
+  openForm(`
+    <div class="toprow"><h3>${b.id?'Edit':'Add'} Banner</h3><button class="close" onclick="closeForm()">✕</button></div>
+    <label>Banner Image</label>
+    <input type="file" id="f_bimg" accept="image/*">
+    <div class="imgpreview" id="f_bimg_preview">${b.image_url?`<img src="${b.image_url}">`:''}</div>
+    <input type="hidden" id="f_bimg_url" value="${b.image_url}">
+    <div class="uploadstatus" id="f_bimg_status"></div>
+    <label>Heading Text</label><input id="f_bhead" value="${b.heading}">
+    <label>Sub Text</label><input id="f_bsub" value="${b.subtext}">
+    <label>Sort Order</label><input id="f_border" type="number" value="${b.sort_order}">
+    <div class="togglewrap"><input type="checkbox" id="f_bactive" ${b.active==='Y'?'checked':''}> <label style="margin:0">Active</label></div>
+    <button class="save" onclick="saveBanner(${b.id||'null'})">Save Banner</button>
+    <button class="cancel" onclick="closeForm()">Cancel</button>
+  `);
+  document.getElementById('f_bimg').addEventListener('change', async e=>{
+    const file = e.target.files[0]; if(!file) return;
+    document.getElementById('f_bimg_status').textContent = 'Uploading...';
+    try{
+      const url = await uploadImage(file);
+      document.getElementById('f_bimg_url').value = url;
+      document.getElementById('f_bimg_preview').innerHTML = `<img src="${url}">`;
+      document.getElementById('f_bimg_status').textContent = 'Uploaded ✓';
+    }catch(err){ document.getElementById('f_bimg_status').textContent = 'Failed: '+err.message; }
+  });
+}
+async function saveBanner(id){
+  const data = {
+    id: id || undefined,
+    image_url: document.getElementById('f_bimg_url').value,
+    heading: document.getElementById('f_bhead').value,
+    subtext: document.getElementById('f_bsub').value,
+    sort_order: Number(document.getElementById('f_border').value),
+    active: document.getElementById('f_bactive').checked ? 'Y' : 'N'
+  };
+  const result = await apiPost({ action:'saveBanner', data });
+  if(result.success){ toast('Banner saved ✓'); closeForm(); refreshAll(); }
+  else toast('Error: '+result.error);
+}
+
+/* ================================================================
+   COUPONS
+================================================================= */
+function renderCoupons(){
+  const el = document.getElementById('couponList');
+  if(STATE.coupons.length===0){ el.innerHTML = '<div class="empty">No coupons yet.</div>'; return; }
+  el.innerHTML = STATE.coupons.map(c => `
+    <div class="card">
+      <div class="info">
+        <b>${c.label}</b>
+        <span>${c.type} • ₹${c.min_amount}–₹${c.max_amount} • ${c.value}${c.value_type==='percent'?'%':' flat'}${c.flat_alt?(' or ₹'+c.flat_alt):''} • ${c.active==='Y'?'Active':'Hidden'}</span>
+      </div>
+      <div class="acts">
+        <button class="iconbtn edit" onclick='openCouponForm(${JSON.stringify(c)})'>✎</button>
+        <button class="iconbtn del" onclick="deleteItem('deleteCoupon', ${c.id}, refreshAll)">🗑</button>
+      </div>
+    </div>`).join('');
+}
+function openCouponForm(c){
+  c = c || {id:'', type:'delivery', min_amount:0, max_amount:999999, value:0, value_type:'flat', flat_alt:'', label:'', active:'Y'};
+  openForm(`
+    <div class="toprow"><h3>${c.id?'Edit':'Add'} Coupon Tier</h3><button class="close" onclick="closeForm()">✕</button></div>
+    <label>Type</label>
+    <select id="f_ctype"><option value="delivery" ${c.type==='delivery'?'selected':''}>Delivery Charge</option><option value="discount" ${c.type==='discount'?'selected':''}>Discount</option></select>
+    <div class="frow">
+      <div><label>Min Amount (₹)</label><input id="f_cmin" type="number" value="${c.min_amount}"></div>
+      <div><label>Max Amount (₹)</label><input id="f_cmax" type="number" value="${c.max_amount}"></div>
+    </div>
+    <div class="frow">
+      <div><label>Value</label><input id="f_cval" type="number" value="${c.value}"></div>
+      <div><label>Value Type</label>
+        <select id="f_cvtype"><option value="flat" ${c.value_type==='flat'?'selected':''}>Flat ₹</option><option value="percent" ${c.value_type==='percent'?'selected':''}>Percent %</option></select>
+      </div>
+    </div>
+    <label>Flat Alternative (₹) — used for "X% or ₹Y whichever is more" (leave blank for delivery tiers)</label>
+    <input id="f_cflat" type="number" value="${c.flat_alt}">
+    <label>Label (shown to customer)</label><input id="f_clabel" value="${c.label}">
+    <div class="togglewrap"><input type="checkbox" id="f_cactive" ${c.active==='Y'?'checked':''}> <label style="margin:0">Active</label></div>
+    <button class="save" onclick="saveCoupon(${c.id||'null'})">Save Coupon</button>
+    <button class="cancel" onclick="closeForm()">Cancel</button>
+  `);
+}
+async function saveCoupon(id){
+  const data = {
+    id: id || undefined,
+    type: document.getElementById('f_ctype').value,
+    min_amount: Number(document.getElementById('f_cmin').value),
+    max_amount: Number(document.getElementById('f_cmax').value),
+    value: Number(document.getElementById('f_cval').value),
+    value_type: document.getElementById('f_cvtype').value,
+    flat_alt: document.getElementById('f_cflat').value ? Number(document.getElementById('f_cflat').value) : '',
+    label: document.getElementById('f_clabel').value,
+    active: document.getElementById('f_cactive').checked ? 'Y' : 'N'
+  };
+  const result = await apiPost({ action:'saveCoupon', data });
+  if(result.success){ toast('Coupon saved ✓'); closeForm(); refreshAll(); }
+  else toast('Error: '+result.error);
+}
+
+/* ================================================================
+   CATEGORIES
+================================================================= */
+function renderCategories(){
+  const el = document.getElementById('categoryList');
+  if(STATE.categories.length===0){ el.innerHTML = '<div class="empty">No categories yet.</div>'; return; }
+  el.innerHTML = STATE.categories.map(c => `
+    <div class="card">
+      <div class="info"><b>${c.name}</b><span>Sort order: ${c.sort_order}</span></div>
+      <div class="acts">
+        <button class="iconbtn edit" onclick='openCategoryForm(${JSON.stringify(c)})'>✎</button>
+        <button class="iconbtn del" onclick="deleteItem('deleteCategory', ${c.id}, refreshAll)">🗑</button>
+      </div>
+    </div>`).join('');
+}
+function openCategoryForm(c){
+  c = c || {id:'', name:'', sort_order:1};
+  openForm(`
+    <div class="toprow"><h3>${c.id?'Edit':'Add'} Category</h3><button class="close" onclick="closeForm()">✕</button></div>
+    <label>Category Name</label><input id="f_catname" value="${c.name}">
+    <label>Sort Order</label><input id="f_catorder" type="number" value="${c.sort_order}">
+    <button class="save" onclick="saveCategory(${c.id||'null'})">Save Category</button>
+    <button class="cancel" onclick="closeForm()">Cancel</button>
+  `);
+}
+async function saveCategory(id){
+  const data = { id: id || undefined, name: document.getElementById('f_catname').value, sort_order: Number(document.getElementById('f_catorder').value) };
+  const result = await apiPost({ action:'saveCategory', data });
+  if(result.success){ toast('Category saved ✓'); closeForm(); refreshAll(); }
+  else toast('Error: '+result.error);
+}
+
+/* ================================================================
+   SITE TEXT / SETTINGS
+================================================================= */
+const SETTING_LABELS = {
+  whatsapp_number: 'WhatsApp Number (with country code, no +)',
+  contact_text: 'Contact Us Text',
+  privacy_text: 'Privacy Policy Text',
+  return_text: 'Return Policy Text'
+};
+function renderSettings(){
+  const el = document.getElementById('settingsBlocks');
+  el.innerHTML = STATE.settings.map(s => `
+    <div class="settingblock">
+      <label>${SETTING_LABELS[s.key] || s.key}</label>
+      <textarea id="setting_${s.key}">${s.value}</textarea>
+      <button class="settingsave" onclick="saveSetting('${s.key}')">Save</button>
+    </div>`).join('');
+}
+async function saveSetting(key){
+  const value = document.getElementById('setting_'+key).value;
+  const result = await apiPost({ action:'saveText', key, value });
+  if(result.success) toast('Saved ✓');
+  else toast('Error: '+result.error);
+}
+
+/* ================================================================
+   ORDERS
+================================================================= */
+async function loadOrders(){
+  const el = document.getElementById('orderList');
+  el.innerHTML = '<div class="empty">Loading orders...</div>';
+  const orders = await apiGet('getOrders');
+  if(!orders || orders.length===0){ el.innerHTML = '<div class="empty">No orders yet.</div>'; return; }
+  el.innerHTML = orders.slice().reverse().map(o => {
+    let items = [];
+    try{ items = JSON.parse(o.items_json); }catch(e){}
+    const itemsText = items.map(it => `Product #${it.id} x${it.qty}`).join(', ');
+    return `
+    <div class="ordercard">
+      <div class="top"><span>${o.order_id}</span><span>${new Date(o.timestamp).toLocaleString()}</span></div>
+      <div class="name">${o.name} • ${o.whatsapp}</div>
+      <div class="addr">${o.address}, ${o.city} - ${o.pin}</div>
+      <div class="addr">${itemsText}</div>
+      <div class="total">Total: ₹${o.total} (Sub ₹${o.subtotal} + Del ₹${o.delivery} − Disc ₹${o.discount})</div>
+      <select class="statusdd" onchange="changeOrderStatus('${o.order_id}', this.value)">
+        ${['Pending','Confirmed','Shipped','Delivered','Cancelled'].map(s=>`<option value="${s}" ${o.status===s?'selected':''}>${s}</option>`).join('')}
+      </select>
+    </div>`;
+  }).join('');
+}
+async function changeOrderStatus(orderId, status){
+  const result = await apiPost({ action:'updateOrderStatus', order_id: orderId, status });
+  if(result.success) toast('Status updated ✓');
+  else toast('Error: '+result.error);
+}
+
+/* ================================================================
+   GENERIC DELETE
+================================================================= */
+async function deleteItem(action, id, callback){
+  if(!confirm('Delete this item? This cannot be undone.')) return;
+  const result = await apiPost({ action, id });
+  if(result.success){ toast('Deleted ✓'); callback(); }
+  else toast('Error: '+result.error);
+}
+</script>
+</body>
+</html>
