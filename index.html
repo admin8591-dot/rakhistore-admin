@@ -75,15 +75,7 @@ body{background:#fdf6f0;font-family:'Segoe UI',Arial,sans-serif;color:#1a0408}
 <body>
 
 <!-- LOGIN GATE -->
-<div id="gate">
-  <div class="gatebox">
-    <h1>BhaiBandhan Admin</h1>
-    <p>Enter passcode to continue</p>
-    <input type="password" id="passInput" placeholder="••••••" maxlength="20">
-    <button onclick="tryLogin()">Enter</button>
-    <div class="gateerr" id="gateErr">Wrong passcode, try again.</div>
-  </div>
-</div>
+
 
 <!-- APP -->
 <div id="app">
@@ -143,17 +135,7 @@ let STATE = { products:[], banners:[], coupons:[], categories:[], settings:[] };
 /* ================================================================
    LOGIN GATE
 ================================================================= */
-function tryLogin(){
-  const val = document.getElementById('passInput').value;
-  if (val === ADMIN_PASSCODE) {
-    document.getElementById('gate').style.display='none';
-    document.getElementById('app').style.display='block';
-    initApp();
-  } else {
-    document.getElementById('gateErr').style.display='block';
-  }
-}
-document.getElementById('passInput').addEventListener('keydown', e=>{ if(e.key==='Enter') tryLogin(); });
+
 
 /* ================================================================
    TABS
