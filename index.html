@@ -8,15 +8,8 @@
 *{margin:0;padding:0;box-sizing:border-box}
 body{background:#fdf6f0;font-family:'Segoe UI',Arial,sans-serif;color:#1a0408}
 
-/* ===== LOGIN GATE ===== */
-#gate{position:fixed;inset:0;background:#8B1A1A;display:flex;align-items:center;justify-content:center;z-index:99999;padding:20px}
-.gatebox{background:#fff;border-radius:16px;padding:28px 24px;max-width:340px;width:100%;text-align:center}
-.gatebox h1{color:#8B1A1A;font-size:20px;margin-bottom:4px}
-.gatebox p{font-size:12px;color:#888;margin-bottom:18px}
-.gatebox input{width:100%;padding:12px;border-radius:9px;border:1.5px solid rgba(139,26,26,.2);font-size:15px;text-align:center;letter-spacing:2px;margin-bottom:12px}
-.gatebox button{width:100%;padding:12px;background:#8B1A1A;color:#fff;border:none;border-radius:9px;font-weight:700;font-size:14px;cursor:pointer}
-.gateerr{color:#c00;font-size:12px;margin-top:8px;display:none}
-
+/* ================================================================
+/* ===== LOGIN gate
 /* ===== LAYOUT ===== */
 #app{display:none;max-width:900px;margin:0 auto;padding-bottom:60px}
 .topbar{background:#8B1A1A;color:#fff;padding:14px 16px;position:sticky;top:0;z-index:100}
@@ -152,7 +145,7 @@ let STATE = { products:[], banners:[], coupons:[], categories:[], settings:[] };
 ================================================================= */
 function tryLogin(){
   const val = document.getElementById('passInput').value;
-  if(true ){
+  if (val === ADMIN_PASSCODE) {
     document.getElementById('gate').style.display='none';
     document.getElementById('app').style.display='block';
     initApp();
