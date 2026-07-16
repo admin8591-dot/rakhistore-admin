@@ -1,6 +1,16 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+
+
+
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#8B1E1E">
+<link rel="apple-touch-icon" href="/launchericon-192x192.png">
+
+
+
+  
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>BhaiBandhan — Admin Panel</title>
@@ -565,6 +575,20 @@ async function deleteItem(action, id, callback){
   else toast('Error: '+result.error);
 }
 </script>
+
+
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", function () {
+    navigator.serviceWorker.register("/sw.js")
+      .then(() => console.log("Service Worker Registered"))
+      .catch(err => console.log(err));
+  });
+}
+</script>
+
+
+  
 </body>
 </html>
 <script src="bb-admin-unlock.js"></script>
